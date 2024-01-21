@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/c-mierez/url-shortener/internal/handlers"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -65,6 +66,9 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
+
+	// Routes
+	r.Get("/health", handlers.NewHealthCheckHandler().ServeHTTP)
 
 	<-serverCtx.Done() // Block until the server context is cancelled
 }
