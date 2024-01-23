@@ -83,5 +83,9 @@ func main() {
 		GenerateSlug:  utils.GenerateSlug,
 	}).ServeHTTP)
 
+	r.Get("/{slug}", handlers.NewGetShortURLHandler(handlers.NewGetShortURLHandlerParams{
+		ShortURLStore: shortURLStore,
+	}).ServeHTTP)
+
 	<-serverCtx.Done() // Block until the server context is cancelled
 }
