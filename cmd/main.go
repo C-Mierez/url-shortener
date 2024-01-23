@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/c-mierez/url-shortener/internal/handlers"
+	"github.com/c-mierez/url-shortener/internal/store/db"
+	"github.com/c-mierez/url-shortener/internal/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -34,6 +36,11 @@ func main() {
 		Addr:    "127.0.0.1:8080",
 		Handler: r, // Chi router
 	}
+
+	// Create a store for short URLs
+	shortURLStore := db.NewShortURLStore(db.NewShortURLStoreParams{
+		Logger: logger,
+	})
 
 	// Graceful shutdown
 	go func() {
@@ -62,6 +69,7 @@ func main() {
 
 	// Start the server in a goroutine
 	go func() {
+		logger.Info("Starting server...", slog.String("addr", svr.Addr))
 		if err := svr.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal(err)
 		}
@@ -69,6 +77,11 @@ func main() {
 
 	// Routes
 	r.Get("/health", handlers.NewHealthCheckHandler().ServeHTTP)
+
+	r.Post("/shorten", handlers.NewCreateShortURLHandler(handlers.CreateShortURLHandlerParams{
+		ShortURLStore: shortURLStore,
+		GenerateSlug:  utils.GenerateSlug,
+	}).ServeHTTP)
 
 	<-serverCtx.Done() // Block until the server context is cancelled
 }
